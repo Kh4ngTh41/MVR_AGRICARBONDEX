@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Minted Tokens</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h2>Minted Token History</h2>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Type</th><th>DID</th><th>CID</th></tr>
+    </thead>
+    <tbody>
+      {% for token in tokens %}
+        <tr>
+          <td>{{ token.id }}</td>
+          <td>{{ token.type }}</td>
+          <td>{{ token.did }}</td>
+          <td>{{ token.cid }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a href="/admin">← Quay lại</a>
+</body>
+</html>

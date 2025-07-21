@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f6fa; margin: 0; }
+        .login-container {
+            max-width: 400px;
+            margin: 80px auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 32px 24px;
+        }
+        h2 { text-align: center; margin-bottom: 24px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="text"], input[type="password"] {
+            width: 100%; padding: 10px; margin-bottom: 16px; border: 1px solid #ccc; border-radius: 4px;
+        }
+        button {
+            width: 100%; padding: 10px; background: #2d8cf0; color: #fff; border: none; border-radius: 4px; font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover { background: #1e6bb8; }
+        .flash { margin-bottom: 16px; color: red; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Đăng nhập Admin</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash" style="color: {% if category == 'success' %}green{% else %}red{% endif %};">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <form method="post">
+            <label for="username">Tên đăng nhập</label>
+            <input type="text" id="username" name="username" required autofocus>
+            <label for="password">Mật khẩu</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Đăng nhập</button>
+        </form>
+    </div>
+</body>
+</html>

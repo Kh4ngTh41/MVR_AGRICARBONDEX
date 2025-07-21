@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Mint NFT tự động</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #181c20;
+      color: #e0ffe0;
+      margin: 0;
+    }
+    .container {
+      width: 100vw;
+      max-width: 1400px;
+      min-width: 320px;
+      margin: 40px auto 0 auto;
+      background: #23272b;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+      padding: 32px 2vw;
+      box-sizing: border-box;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #4ade80;
+    }
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .nav a {
+      color: #4ade80;
+      background: #181c20;
+      border: 2px solid #4ade80;
+      border-radius: 6px;
+      padding: 8px 20px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav a.active, .nav a:hover {
+      background: #4ade80;
+      color: #181c20;
+    }
+    .flash {
+      margin-bottom: 16px;
+      text-align: center;
+      color: #f87171;
+    }
+    .mint-row {
+      display: flex;
+      gap: 32px;
+      justify-content: space-between;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+    .mint-col {
+      flex: 1 1 0;
+      min-width: 340px;
+      background: #181c20;
+      border-radius: 8px;
+      padding: 24px 16px;
+      box-sizing: border-box;
+      border: 1px solid #4ade80;
+    }
+    .mint-col h2 {
+      color: #4ade80;
+      text-align: center;
+      margin-bottom: 18px;
+      font-size: 22px;
+    }
+    input[type="text"] {
+      padding: 8px;
+      width: 100%;
+      max-width: 350px;
+      margin-bottom: 12px;
+      border-radius: 4px;
+      border: 1px solid #4ade80;
+      background: #23272b;
+      color: #fff;
+      box-sizing: border-box;
+      caret-color: #4ade80;
+    }
+    button {
+      padding: 10px 24px;
+      border-radius: 6px;
+      border: none;
+      background: #4ade80;
+      color: #181c20;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #22c55e;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #181c20;
+      color: #e0ffe0;
+      table-layout: fixed;
+    }
+    th, td {
+      padding: 10px 8px;
+      border: 1px solid #4ade80;
+      text-align: left;
+      word-break: break-all;
+    }
+    th {
+      background: #23272b;
+      color: #4ade80;
+    }
+    @media (max-width: 900px) {
+      .container { padding: 12px 2vw; }
+      .mint-row { flex-direction: column; gap: 16px; }
+      .mint-col { min-width: 0; }
+      table, th, td { font-size: 13px; }
+      .nav { gap: 8px; }
+      button, input[type="text"] { font-size: 14px; }
+      input[type="text"] { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dashboard - Mint NFT tự động</h1>
+    <div class="nav">
+      <a href="{{ url_for('views.dashboard') }}" class="active">Mint tự động</a>
+      <a href="{{ url_for('views.manual_mint_page') }}">Mint thủ công</a>
+      <a href="{{ url_for('views.minted_tokens') }}">Minted Tokens</a>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash">
+        {% for category, message in messages %}
+          <span style="color: {% if category == 'success' %}#4ade80{% else %}#f87171{% endif %};">{{ message }}</span><br>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <div class="mint-row">
+      <div class="mint-col">
+        <h2>Mint Debt NFT</h2>
+        <form method="post" action="{{ url_for('views.bulk_mint') }}">
+          <label for="bulk_wallet_debt">Địa chỉ ví nhận:</label>
+          <input type="text" name="bulk_wallet" id="bulk_wallet_debt" required placeholder="Nhập địa chỉ ví nhận">
+          <button type="submit">Mint các NFT Debt đã chọn</button>
+          <br>
+          <label style="margin-top:32px; display:block;">Chọn các CID/DID type debt:</label>
+          <table>
+            <tr>
+              <th>Chọn</th>
+              <th>CID</th>
+              <th>DID</th>
+            </tr>
+            {% for item in cid_did_records %}
+              {% if item.type == 'emitter_co2_log' %}
+              <tr>
+                <td><input type="checkbox" name="bulk_selected" value="{{ item.cid }}|{{ item.did }}|debt"></td>
+                <td>{{ item.cid }}</td>
+                <td>{{ item.did }}</td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          </table>
+        </form>
+      </div>
+      <div class="mint-col">
+        <h2>Mint Offset NFT</h2>
+        <form method="post" action="{{ url_for('views.bulk_mint') }}">
+          <label for="bulk_wallet_offset">Địa chỉ ví nhận:</label>
+          <input type="text" name="bulk_wallet" id="bulk_wallet_offset" required placeholder="Nhập địa chỉ ví nhận">
+          <button type="submit">Mint các NFT Offset đã chọn</button>
+          <br>
+          <label style="margin-top:32px; display:block;">Chọn các CID/DID type offset:</label>
+          <table>
+            <tr>
+              <th>Chọn</th>
+              <th>CID</th>
+              <th>DID</th>
+            </tr>
+            {% for item in cid_did_records %}
+              {% if item.type == 'absorber_co2_log' %}
+              <tr>
+                <td><input type="checkbox" name="bulk_selected" value="{{ item.cid }}|{{ item.did }}|offset"></td>
+                <td>{{ item.cid }}</td>
+                <td>{{ item.did }}</td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          </table>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

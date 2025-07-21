@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mint nhiều NFT vào một ví</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        form { max-width: 600px; margin: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 8px 12px; border: 1px solid #ccc; }
+        input[type="text"] { width: 400px; padding: 6px; }
+        button { padding: 8px 16px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Mint nhiều NFT vào một ví</h2>
+    <form method="post" action="{{ url_for('views.bulk_mint') }}">
+        <label for="bulk_wallet">Địa chỉ ví nhận:</label>
+        <input type="text" name="bulk_wallet" id="bulk_wallet" required>
+        <br><br>
+        <label>Chọn các CID/DID muốn mint:</label>
+        <table>
+            <tr>
+                <th>Chọn</th>
+                <th>CID</th>
+                <th>DID</th>
+                <th>Type</th>
+            </tr>
+            {% for item in cid_did_records %}
+            <tr>
+                <td><input type="checkbox" name="bulk_selected" value="{{ item.cid }}|{{ item.did }}|{{ item.type }}"></td>
+                <td>{{ item.cid }}</td>
+                <td>{{ item.did }}</td>
+                <td>{{ item.type }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <button type="submit">Mint các NFT đã chọn</button>
+    </form>
+    <br>
+    <a href="{{ url_for('views.dashboard') }}">Quay lại Dashboard</a>
+</body>
+</html>

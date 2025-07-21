@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MVR Admin</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h2>MVR Admin Dashboard</h2>
+  <form method="POST">
+    <input name="wallet" placeholder="Wallet Address" required><br>
+    <input name="cid" placeholder="CID" required><br>
+    <input name="did" placeholder="DID" required><br>
+    <select name="token_type">
+      <option value="debt">Carbon Debt NFT</option>
+      <option value="offset">Carbon Offset NFT</option>
+    </select><br>
+    <button type="submit">Mint Token</button>
+  </form>
+
+  {% if tx_hash %}
+    <p style="color: green">Transaction hash: {{ tx_hash }}</p>
+  {% elif error %}
+    <p style="color: red">{{ error }}</p>
+  {% endif %}
+
+  <a href="/tokens">Xem các token đã mint</a> | <a href="/logout">Đăng xuất</a>
+</body>
+</html>

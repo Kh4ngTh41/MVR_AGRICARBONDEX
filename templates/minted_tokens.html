@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Danh sách NFT đã mint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #181c20;
+      color: #e0ffe0;
+      margin: 0;
+    }
+    .container {
+      width: 90vw;
+      max-width: 1400px;
+      min-width: 320px;
+      margin: 40px auto;
+      background: #23272b;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+      padding: 32px 2vw;
+      transition: width 0.2s;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #4ade80;
+    }
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .nav a {
+      color: #4ade80;
+      background: #181c20;
+      border: 2px solid #4ade80;
+      border-radius: 6px;
+      padding: 8px 20px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav a.active, .nav a:hover {
+      background: #4ade80;
+      color: #181c20;
+    }
+    .flash {
+      margin-bottom: 16px;
+      text-align: center;
+      color: #f87171;
+    }
+    .search-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    input[type="text"] {
+      padding: 8px;
+      width: 350px;
+      border-radius: 4px;
+      border: 1px solid #4ade80;
+      background: #23272b;
+      color: #e0ffe0;
+    }
+    button {
+      padding: 10px 24px;
+      border-radius: 6px;
+      border: none;
+      background: #4ade80;
+      color: #181c20;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #22c55e;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #181c20;
+      color: #e0ffe0;
+      table-layout: fixed;
+    }
+    th, td {
+      padding: 10px 8px;
+      border: 1px solid #4ade80;
+      text-align: left;
+      word-break: break-all;
+    }
+    th {
+      background: #23272b;
+      color: #4ade80;
+    }
+    a { color: #4ade80; }
+    @media (max-width: 900px) {
+      .container { padding: 12px 2vw; }
+      table, th, td { font-size: 13px; }
+      .nav { gap: 8px; }
+      button, input[type="text"] { font-size: 14px; }
+      .search-row { flex-direction: column; align-items: stretch; }
+      input[type="text"] { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Danh sách NFT đã mint</h1>
+    <div class="nav">
+      <a href="{{ url_for('views.dashboard') }}">Mint tự động</a>
+      <a href="{{ url_for('views.manual_mint_page') }}">Mint thủ công</a>
+      <a href="{{ url_for('views.minted_tokens') }}" class="active">Minted Tokens</a>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash">
+        {% for category, message in messages %}
+          <span style="color: {% if category == 'success' %}#4ade80{% else %}#f87171{% endif %};">{{ message }}</span><br>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <form method="get" class="search-row">
+      <input type="text" name="search" placeholder="Tìm CID hoặc DID..." value="{{ request.args.get('search', '') }}">
+      <button type="submit">Tìm kiếm</button>
+    </form>
+    <table>
+      <tr>
+        <th style="width: 110px;">Token Type</th>
+        <th style="width: 220px;">Wallet</th>
+        <th style="width: 320px;">CID(s)</th>
+        <th style="width: 220px;">DID</th>
+        <th style="width: 180px;">Tx Hash</th>
+        <th style="width: 120px;">Thời gian</th>
+      </tr>
+      {% for t in tokens %}
+        <tr>
+          <td>{{ t.token_type }}</td>
+          <td>{{ t.wallet }}</td>
+          <td>
+            {% if t.cid_list|length > 1 %}
+              {% for cid in t.cid_list %}
+                <div>{{ cid }}</div>
+              {% endfor %}
+            {% else %}
+              {{ t.cid_list[0] }}
+            {% endif %}
+          </td>
+          <td>{{ t.did }}</td>
+          <td><a href="https://sepolia-era.zksync.network/tx/0x{{ t.tx_hash }}" target="_blank">{{ t.tx_hash }}</a></td>
+          <td>{{ t.timestamp }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+</body>
+</html>
