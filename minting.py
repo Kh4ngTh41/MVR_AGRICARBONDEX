@@ -14,8 +14,8 @@ w3 = Web3(Web3.HTTPProvider(INFURA_URL))
 
 # Địa chỉ contract đã deploy
 CARBON_CREDIT_ADDRESS = "0xe08AD1dEE2562147E68A14C0F5a02579FdCbA1E6"
-CARBON_DEBT_ADDRESS = "0x7FB9F74678C0047Ad560bcEB2c85DAa744632779"
-CARBON_OFFSET_ADDRESS = "0x83bf15a237256d4aFE1580028302897cBC266ceD"
+CARBON_DEBT_ADDRESS = "0x21aDF2628d1342Cd8CE32f1098D2747a1192Da69"
+CARBON_OFFSET_ADDRESS = "0xeE162f12f20B796d9eb696608495BEDB0055a04c"
 
 # Load ABI từ thư mục abis/
 with open("abis/CarbonCreditToken.json") as f:
@@ -53,14 +53,15 @@ def mint_erc20(to_address, amount):
     return tx_hash.hex()
 
 # Mint Debt NFT (emitter)
-def mint_debt_nft(to_address, cid_list, did):
+def mint_debt_nft(to_address, cid_list, did,co2_amount):
     # cid_list là list các cid muốn mint cùng lúc
     nonce = w3.eth.get_transaction_count(PUBLIC_ADDRESS)
     tx = debt_contract.functions.MintDebtNFT(
         to_address,
         cid_list,  # truyền list các cid
         did,
-        cid_list  # truyền list các cid
+        cid_list,
+        co2_amount
     ).build_transaction({
         'from': PUBLIC_ADDRESS,
         'nonce': nonce,
@@ -72,13 +73,14 @@ def mint_debt_nft(to_address, cid_list, did):
     return tx_hash.hex()
 
 # Mint Offset NFT (absorber)
-def mint_offset_nft(to_address, cid_list, did):
+def mint_offset_nft(to_address, cid_list, did,co2_amount):
     nonce = w3.eth.get_transaction_count(PUBLIC_ADDRESS)
     tx = offset_contract.functions.Mint(
         to_address,
         cid_list,
         did,
-        cid_list
+        cid_list,
+        co2_amount  
     ).build_transaction({
         'from': PUBLIC_ADDRESS,
         'nonce': nonce,

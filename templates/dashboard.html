@@ -161,13 +161,15 @@
               <th>Chọn</th>
               <th>CID</th>
               <th>DID</th>
+              <th>CO2</th>
             </tr>
             {% for item in cid_did_records %}
               {% if item.type == 'emitter_co2_log' %}
               <tr>
-                <td><input type="checkbox" name="bulk_selected" value="{{ item.cid }}|{{ item.did }}|debt"></td>
+                <td><input type="checkbox" name="bulk_selected" value="{{ item.cid }}|{{ item.did }}|debt|{{ item.co2_amount }}"></td>
                 <td>{{ item.cid }}</td>
                 <td>{{ item.did }}</td>
+                <td>{{ item.co2_amount }}</td>
               </tr>
               {% endif %}
             {% endfor %}
@@ -184,16 +186,18 @@
           <label style="margin-top:32px; display:block;">Chọn các CID/DID type offset:</label>
           <table>
             <tr>
-              <th>Chọn</th>
+              <th>Chọn</th>h
               <th>CID</th>
               <th>DID</th>
+              <th>CO2</th>
             </tr>
             {% for item in cid_did_records %}
               {% if item.type == 'absorber_co2_log' %}
               <tr>
-                <td><input type="checkbox" name="bulk_selected" value="{{ item.cid }}|{{ item.did }}|offset"></td>
+                <td><input type="checkbox" name="bulk_selected" value="{{ item.cid }}|{{ item.did }}|offset|{{ item.co2_amount }}"></td>
                 <td>{{ item.cid }}</td>
                 <td>{{ item.did }}</td>
+                <td>{{ item.co2_amount }}</td>
               </tr>
               {% endif %}
             {% endfor %}

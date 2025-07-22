@@ -14,7 +14,7 @@ CID_DID_PATH = "data/cid_did.json"
 # Bắt buộc đăng nhập khi vào bất kỳ route nào (trừ login/register)
 @views.before_app_request
 def require_login():
-    allowed_routes = ['views.login', 'register', 'static']
+    allowed_routes = ['views.login', 'register', 'static', 'views.save_cid_did']
     if not current_user.is_authenticated and request.endpoint not in allowed_routes:
         return redirect(url_for('views.login'))
 
@@ -54,6 +54,7 @@ def remove_cid_did(cid, did):
 def mint():
     did = request.form.get("did")
     cid = request.form.get("cid")
+    co2_amount = request.form.get("co2_amount")
     type_raw = request.form.get("type")
     address = request.form.get("address")
 
@@ -71,9 +72,9 @@ def mint():
 
     try:
         if type_ == "debt":
-            tx_hash = mint_debt_nft(address, cid, did)
+            tx_hash = mint_debt_nft(address, cid, did, co2_amount)
         elif type_ == "offset":
-            tx_hash = mint_offset_nft(address, cid, did)
+            tx_hash = mint_offset_nft(address, cid, did, co2_amount)
         else:
             return jsonify({"error": f"Không xác định được loại mint: {type_}"}), 400
         # Lưu vào bảng MintedToken
@@ -84,7 +85,8 @@ def mint():
             did=did,
             tx_hash=tx_hash,
             token_id="pending",
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
+            co2_amount=co2_amount
         )
         db.session.add(minted)
         db.session.commit()
@@ -95,33 +97,68 @@ def mint():
 
 @views.route("/api/save_cid_did", methods=["POST"])
 def save_cid_did():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Missing data"}), 400
+    try:
+        data = request.get_json(force=True)
+        if not data:
+            return jsonify({"error": "Missing JSON body"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Invalid JSON format: {e}"}), 400
 
+    # Đọc file JSON an toàn
+    all_data = []
     if os.path.exists(CID_DID_PATH):
-        with open(CID_DID_PATH, "r") as f:
-            all_data = json.load(f)
-    else:
-        all_data = []
+        try:
+            with open(CID_DID_PATH, "r") as f:
+                file_content = f.read().strip()
+                if file_content:
+                    all_data = json.loads(file_content)
+        except Exception as e:
+            return jsonify({"error": f"Failed to read CID_DID_PATH: {e}"}), 500
 
     all_data.append(data)
 
-    with open(CID_DID_PATH, "w") as f:
-        json.dump(all_data, f, indent=2, ensure_ascii=False)
+    try:
+        with open(CID_DID_PATH, "w") as f:
+            json.dump(all_data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        return jsonify({"error": f"Failed to write CID_DID_PATH: {e}"}), 500
 
-    # Lưu vào hàng chờ nếu chưa có
+    # Parse timestamp nếu có
+    try:
+        timestamp_str = data.get("timestamp")
+        timestamp = datetime.fromisoformat(timestamp_str) if timestamp_str else datetime.utcnow()
+    except Exception as e:
+        return jsonify({"error": f"Invalid timestamp format: {e}"}), 400
+
+    # Parse co2_amount nếu có
+    try:
+        raw_amount = data.get("co2_amount")
+        print('raw_amount',raw_amount)
+        co2_amount = int((float(raw_amount) * 1000) // 100)
+        print('co2_grams',co2_amount)
+    except Exception as e:
+        return jsonify({"error": f"Invalid co2_amount format: {e}"}), 400
+
+    # Tạo bản ghi mới trong hàng đợi
     new_item = MintQueue(
         wallet=data.get("wallet", ""),
         cid=data.get("cid"),
         did=data.get("did"),
         token_type=data.get("type"),
-        timestamp=datetime.utcnow()
+        co2_amount=co2_amount,
+        timestamp=timestamp
     )
-    db.session.add(new_item)
-    db.session.commit()
+
+    try:
+        db.session.add(new_item)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Database insert failed: {e}"}), 500
 
     return jsonify({"status": "success", "message": "CID + DID received"}), 200
+
+
 
 @views.route("/mint_from_dashboard", methods=["POST"])
 @login_required
@@ -138,12 +175,12 @@ def mint_from_dashboard():
     wallet_address = request.form.get("wallet_address")
     did = request.form.get("did")
     cid = request.form.get("cid")
-
+    co2_amount = request.form.get("co2_amount")
     try:
         if type_ == "debt":
-            tx_hash = mint_debt_nft(wallet_address, cid, did)
+            tx_hash = mint_debt_nft(wallet_address, cid, did, co2_amount)
         elif type_ == "offset":
-            tx_hash = mint_offset_nft(wallet_address, cid, did)
+            tx_hash = mint_offset_nft(wallet_address, cid, did, co2_amount)
         else:
             return jsonify({"error": f"Không xác định được loại mint: {type_}"}), 400
 
@@ -163,9 +200,9 @@ def mint_from_queue(queue_id):
 
     try:
         if item.token_type == "debt":
-            tx_hash = mint_debt_nft(wallet, item.cid, item.did)
+            tx_hash = mint_debt_nft(wallet, item.cid, item.did, item.co2_amount)
         elif item.token_type == "offset":
-            tx_hash = mint_offset_nft(wallet, item.cid, item.did)
+            tx_hash = mint_offset_nft(wallet, item.cid, item.did, item.co2_amount)
         else:
             raise Exception("Loại token không hợp lệ")
 
@@ -175,7 +212,9 @@ def mint_from_queue(queue_id):
             cid=item.cid,
             did=item.did,
             tx_hash=tx_hash,
-            token_id="pending"
+            token_id="pending",
+            timestamp=datetime.utcnow(),
+            co2_amount=item.co2_amount
         )
         db.session.add(minted)
         db.session.delete(item)
@@ -236,15 +275,19 @@ def bulk_mint():
     # Gom các cid/did theo type
     debt_cids = []
     offset_cids = []
+    array_co2_amount = []
     did_debt = None
     did_offset = None
     for entry in selected:
-        cid, did, type_ = entry.split("|")
+        cid, did, type_,co2_amount = entry.split("|")
+        print(cid, did, type_, co2_amount)
         if type_ == "debt":
             debt_cids.append(cid)
+            array_co2_amount.append(co2_amount)
             did_debt = did
         elif type_ == "offset":
             offset_cids.append(cid)
+            array_co2_amount.append(co2_amount)
             did_offset = did
         else:
             errors.append(f"Sai type cho {cid} {did}")
@@ -252,7 +295,7 @@ def bulk_mint():
     minted_count = 0
     if debt_cids:
         try:
-            tx_hash = mint_debt_nft(wallet, debt_cids, did_debt)
+            tx_hash = mint_debt_nft(wallet, debt_cids, did_debt, array_co2_amount)
             # Lưu MintedToken với danh sách CID
             import json
             minted = MintedToken(
@@ -262,6 +305,7 @@ def bulk_mint():
                 did=did_debt,
                 tx_hash=tx_hash,
                 token_id="pending",
+                co2_amount=json.dumps(array_co2_amount),
                 timestamp=datetime.utcnow()
             )
             db.session.add(minted)
@@ -270,7 +314,7 @@ def bulk_mint():
             errors.append(f"Debt: {e}")
     if offset_cids:
         try:
-            tx_hash = mint_offset_nft(wallet, offset_cids, did_offset)
+            tx_hash = mint_offset_nft(wallet, offset_cids, did_offset, array_co2_amount)
             import json
             minted = MintedToken(
                 token_type="offset",
@@ -279,6 +323,7 @@ def bulk_mint():
                 did=did_offset,
                 tx_hash=tx_hash,
                 token_id="pending",
+                co2_amount=json.dumps(array_co2_amount),
                 timestamp=datetime.utcnow()
             )
             db.session.add(minted)
@@ -288,7 +333,7 @@ def bulk_mint():
     db.session.commit()
     # Xoá các cid/did đã mint khỏi file
     for entry in selected:
-        cid, did, type_ = entry.split("|")
+        cid, did, type_,co2_amount = entry.split("|")
         remove_cid_did(cid, did)
     if minted_count:
         flash(f"Mint thành công {minted_count} NFT (mỗi loại 1 NFT chứa nhiều CID)!", "success")

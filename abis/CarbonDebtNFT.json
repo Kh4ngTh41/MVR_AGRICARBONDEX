@@ -282,6 +282,11 @@
 				"internalType": "string[]",
 				"name": "tokenURIs",
 				"type": "string[]"
+			},
+			{
+				"internalType": "string[]",
+				"name": "co2Amounts",
+				"type": "string[]"
 			}
 		],
 		"name": "MintDebtNFT",
@@ -350,6 +355,11 @@
 				"internalType": "string",
 				"name": "tokenURI",
 				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "co2Amount",
+				"type": "string"
 			}
 		],
 		"stateMutability": "view",
@@ -386,17 +396,22 @@
 		"outputs": [
 			{
 				"internalType": "string",
-				"name": "",
+				"name": "did",
 				"type": "string"
 			},
 			{
 				"internalType": "string",
-				"name": "",
+				"name": "ipfsCid",
 				"type": "string"
 			},
 			{
 				"internalType": "string",
-				"name": "",
+				"name": "tokenURI",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "co2Amount",
 				"type": "string"
 			}
 		],

@@ -276,6 +276,11 @@
 				"internalType": "string[]",
 				"name": "tokenURIs",
 				"type": "string[]"
+			},
+			{
+				"internalType": "string[]",
+				"name": "co2Amounts",
+				"type": "string[]"
 			}
 		],
 		"name": "Mint",
@@ -339,6 +344,11 @@
 				"internalType": "string",
 				"name": "did",
 				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "co2Amount",
+				"type": "string"
 			}
 		],
 		"stateMutability": "view",
@@ -373,6 +383,11 @@
 		],
 		"name": "getCarbonMetadata",
 		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
 			{
 				"internalType": "string",
 				"name": "",

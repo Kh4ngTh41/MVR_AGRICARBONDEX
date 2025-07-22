@@ -12,7 +12,7 @@ class MintedToken(db.Model):
     tx_hash = db.Column(db.String(100))
     token_id = db.Column(db.String(100))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
+    co2_amount = db.Column(db.Integer, nullable=True)  # Lưu lượng CO2 tính bằng gram
     def get_cid_list(self):
         try:
             import json
@@ -27,3 +27,4 @@ class MintQueue(db.Model):
     token_type = db.Column(db.String(10), nullable=False)  # "debt" hoặc "offset"
     wallet = db.Column(db.String(42), nullable=True)  # tuỳ chọn: ví người nhận
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    co2_amount = db.Column(db.Integer, nullable=True)  # Lưu lượng CO2 tính bằng gram
